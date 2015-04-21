@@ -13,7 +13,7 @@ function scald_extra_admin_settings($form, &$form_state) {
     '#title' => t('The image styles to generate contexts for'),
     '#options' => array(
       'all' => t('All'),
-      'numeric' => t('Numeric (100x100)'),
+      'numeric' => t('Numeric'),
       'none' => t('None'),
     ),
     '#default_value' => variable_get('scald_extra_generate_contexts', 'all'),
@@ -21,10 +21,15 @@ function scald_extra_admin_settings($form, &$form_state) {
   );
 
   $form['scald_extra_generate_thumbnails'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Pre-generate thumbnails upon upload'),
+    '#type' => 'select',
+    '#title' => t('The image styles to pre-generate thumbnails'),
+    '#options' => array(
+      'all' => t('All'),
+      'numeric' => t('Numeric'),
+      'none' => t('None'),
+    ),
     '#default_value' => variable_get('scald_extra_generate_thumbnails', TRUE),
-    '#description' => t('Generate thumbnails for all image styles when uploading an image (thumbnail) for an atom. This can help to avoid performance issues in the case that many images are uploaded or updated, or to avoid problems that happen sometimes with the thumbnails not being generated until the next time the cache is cleared.'),
+    '#description' => t('Generate thumbnails for all image styles when uploading an image (thumbnail) for an atom. This can help to avoid performance issues in the case that many images are uploaded or updated, or to avoid problems that happen sometimes with the thumbnails not being generated until the next time the cache is cleared. The meaning of the Numeric option is the same as with the generating contexts.'),
   );
 
   return system_settings_form($form);

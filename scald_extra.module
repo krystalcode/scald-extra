@@ -95,6 +95,14 @@ function scald_extra_form_scald_atom_add_form_options_alter(&$form, &$form_state
  * )
  */
 function _scald_extra_atom_add_form_options_submit_thumbnails(&$form, &$form_state) {
+  // Get the image styles to generate thumbnails for.
+  $styles = _scald_extra_image_styles(variable_get('scald_extra_generate_thumbnails', 'all'));
+
+  // Do not proceed if there are no styles ('none' configuration option).
+  if (empty($styles)) {
+    return;
+  }
+
   // Do not proceed if the atom does not have an image field.
   // The image field in atoms is always the scald_thumbnail field.
   // If that's changed by adding new image field in one or more atom types, the
@@ -134,7 +142,7 @@ function _scald_extra_atom_add_form_options_submit_thumbnails(&$form, &$form_sta
   // The image (atom) could be referenced in any content type, in any view
   // mode, and using any image style. We therefore need to generate thumbnails
   // for all image styles for the image uploaded.
-  foreach (image_styles() as $style) {
+  foreach ($styles as $style) {
     // Check if thumbnail already exists.
     $destination = image_style_path($style['name'], $file->uri);
     if (file_exists($destination)) {

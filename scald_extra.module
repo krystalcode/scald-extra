@@ -58,3 +58,80 @@ function scald_extra_scald_render($atom, $context, $options) {
 
   return $atom->rendered->player;
 }
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function scald_extra_form_scald_atom_add_form_options_alter(&$form, &$form_state, $form_id) {
+  // Custom validation callback for pre-generating image styles.
+  $form['#submit'][] = '_scald_extra_atom_add_form_options_submit_thumbnails';
+}
+
+/**
+ * Custom submit callback that generates thumbnails for all image styles for
+ * the uploaded image. This is done when uploading an image (in an atom) to
+ * avoid performance issues in the case that many images are uploaded or
+ * updated, or to avoid problems that happen sometimes with the thumbnails not
+ * being generated until the next cache clearing.
+ *
+ * @Issue(
+ *   "Request a hook_scald_atom_insert() and move the code there",
+ *   type="task",
+ *   priority="low"
+ * )
+ */
+function _scald_extra_atom_add_form_options_submit_thumbnails(&$form, &$form_state) {
+  // Do not proceed if the atom does not have an image field.
+  // The image field in atoms is always the scald_thumbnail field.
+  // If that's changed by adding new image field in one or more atom types, the
+  // code here should be updated accordingly.
+  if (empty($form['atom0']['scald_thumbnail'])) {
+    return;
+  }
+
+  $language = $form['atom0']['scald_thumbnail']['#language'];
+
+  // The updated file id is taken from the submitted values ($form_state).
+  $fid = $form_state['values']['atom0']['scald_thumbnail'][$language][0]['fid'];
+  if (!$fid) {
+    return;
+  }
+
+  // Check if the file has been updated by comparing with the previous value
+  // ($form). If not, do nothing because the thumbnails have most likely
+  // already been generated when the image was originally uploaded.
+  // Do this check only on edit atom forms because when we are adding a new atom
+  // we are coming from the pre-options form, the image is already uploaded, the
+  // previous value will be matching the submitted value, but we still want to
+  // generate the thumbnails as the image is new.
+  if (
+    strpos($form['#action'], 'atom/add/') === FALSE &&
+    $fid === $form['atom0']['scald_thumbnail'][$language][0]['#default_value']['fid']
+  ) {
+    return;
+  }
+
+  // Do nothing if the file can't be loaded (shouldn't happen at this stage).
+  $file = file_load($fid);
+  if (!$file) {
+    return;
+  }
+
+  // The image (atom) could be referenced in any content type, in any view
+  // mode, and using any image style. We therefore need to generate thumbnails
+  // for all image styles for the image uploaded.
+  foreach (image_styles() as $style) {
+    // Check if thumbnail already exists.
+    $destination = image_style_path($style['name'], $file->uri);
+    if (file_exists($destination)) {
+      continue;
+    }
+
+    // Generate thumbnail.
+    image_style_create_derivative(
+      $style,
+      $file->uri,
+      $destination
+    );
+  }
+}

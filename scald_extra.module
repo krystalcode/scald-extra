@@ -12,6 +12,8 @@
  * image_"width"x"height" e.g. image_100x100 or image_100. This, together with
  * the scald_extra_scald_render() hook, provide an easy way to have all image
  * styles available in content view modes for rendering images (through atoms).
+ *
+ * @Issue("Allow to choose which image styles to generate contexts for")
  */
 function scald_extra_scald_contexts() {
   $contexts = array();
@@ -46,6 +48,8 @@ function scald_extra_scald_contexts() {
  *
  * Render the image only without any metadata (authors, tags) when the context
  * starts with image_ e.g. image_100x100.
+ *
+ * @Issue("Allow to choose whether to render metadata or not")
  */
 function scald_extra_scald_render($atom, $context, $options) {
   if (strpos($context, 'image_') !== 0) {

@@ -61,6 +61,8 @@ function scald_extra_scald_render($atom, $context, $options) {
 
 /**
  * Implements hook_form_FORM_ID_alter().
+ *
+ * @Issue("Provide a configuration option for pre-generating thumbnails or not")
  */
 function scald_extra_form_scald_atom_add_form_options_alter(&$form, &$form_state, $form_id) {
   // Custom validation callback for pre-generating image styles.

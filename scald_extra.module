@@ -1,0 +1,56 @@
+<?php
+/**
+ * @file
+ * Module file for the scald_extra module.
+ */
+
+/**
+ * Implements hook_scald_contexts().
+ *
+ * It automatically generates a context for each image style that follows the
+ * format "width"x"height" e.g. 100x100 or simply 100. The context is named
+ * image_"width"x"height" e.g. image_100x100 or image_100. This, together with
+ * the scald_extra_scald_render() hook, provide an easy way to have all image
+ * styles available in content view modes for rendering images (through atoms).
+ */
+function scald_extra_scald_contexts() {
+  $contexts = array();
+  $styles = image_styles();
+
+  // Define a context for each image style that follows the numeric pattern.
+  foreach ($styles as $style) {
+    $name_parts = explode('x', $style['name']);
+    foreach ($name_parts as $name_part) {
+      if (!is_numeric($name_part)) {
+        continue 2;
+      }
+    }
+
+    $contexts['image_' . $style['name']] = array(
+      'title' => t('Image ' . $style['name']),
+      'description' => t('Image only without metadata using the ' . $style['name'] . ' style'),
+      'render_language' => 'XHTML',
+      'parseable' => TRUE,
+      'hidden' => FALSE,
+      'formats' => array(
+        'image' => array('jpeg', 'png', 'passthrough'),
+      ),
+    );
+  }
+
+  return $contexts;
+}
+
+/**
+ * Implements hook_scald_render().
+ *
+ * Render the image only without any metadata (authors, tags) when the context
+ * starts with image_ e.g. image_100x100.
+ */
+function scald_extra_scald_render($atom, $context, $options) {
+  if (strpos($context, 'image_') !== 0) {
+    return;
+  }
+
+  return $atom->rendered->player;
+}

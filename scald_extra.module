@@ -5,6 +5,32 @@
  */
 
 /**
+ * Implements hook_menu().
+ */
+function scald_extra_menu() {
+  $items = array();
+
+  // Add a "Settings" default tab for the default Scald configuration, so that
+  // we can add an additional tab for the Scald Extra configuration.
+  $items['admin/config/content/scald/settings'] = array(
+    'title' => 'Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['admin/config/content/scald/extra'] = array(
+    'title' => 'Extra',
+    'description' => 'Configuration for the Scald Extra plugin',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('scald_extra_admin_settings'),
+    'access arguments' => array('administer scald'),
+    'file' => 'scald_extra.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+/**
  * Implements hook_scald_contexts().
  *
  * It automatically generates a context for each image style that follows the
@@ -17,27 +43,13 @@
  */
 function scald_extra_scald_contexts() {
   $contexts = array();
-  $styles = image_styles();
 
-  // Define a context for each image style that follows the numeric pattern.
+  // Get the image styles to generate contexts for.
+  $styles = _scald_extra_image_styles(variable_get('scald_extra_generate_contexts', 'all'));
+
+  // Define a context for each image style.
   foreach ($styles as $style) {
-    $name_parts = explode('x', $style['name']);
-    foreach ($name_parts as $name_part) {
-      if (!is_numeric($name_part)) {
-        continue 2;
-      }
-    }
-
-    $contexts['image_' . $style['name']] = array(
-      'title' => t('Image ' . $style['name']),
-      'description' => t('Image only without metadata using the ' . $style['name'] . ' style'),
-      'render_language' => 'XHTML',
-      'parseable' => TRUE,
-      'hidden' => FALSE,
-      'formats' => array(
-        'image' => array('jpeg', 'png', 'passthrough'),
-      ),
-    );
+    $contexts['image_' . $style['name']] = _scald_extra_context_array($style);
   }
 
   return $contexts;
@@ -66,7 +78,9 @@ function scald_extra_scald_render($atom, $context, $options) {
  */
 function scald_extra_form_scald_atom_add_form_options_alter(&$form, &$form_state, $form_id) {
   // Custom validation callback for pre-generating image styles.
-  $form['#submit'][] = '_scald_extra_atom_add_form_options_submit_thumbnails';
+  if (variable_get('scald_extra_generate_thumbnails', TRUE)) {
+    $form['#submit'][] = '_scald_extra_atom_add_form_options_submit_thumbnails';
+  }
 }
 
 /**
@@ -136,4 +150,76 @@ function _scald_extra_atom_add_form_options_submit_thumbnails(&$form, &$form_sta
       $destination
     );
   }
+}
+
+/**
+ * Get the image styles to generate context or thumbnails for based on the
+ * corresponding configuration option.
+ *
+ * @param string $option
+ *   The configuration option that should be choice between 'all', 'numeric' or
+ *   'none'.
+ *
+ * @throws Exception
+ *   If the configuration option does not have one of the supported values.
+ *
+ * @return array
+ *   The image styles for the given configuration option.
+ */
+function _scald_extra_image_styles($option) {
+  if ($option === 'none') {
+    return array();
+  }
+
+  if ($option === 'all') {
+    return image_styles();
+  }
+
+  if ($option !== 'numeric') {
+    throw new Exception(
+      sprintf(
+        'The configuration option "%s" is not supported for filtering image styles.',
+        $option
+      )
+    );
+  }
+
+  // If the Numeric configuration option is chosen for generating contexts or
+  // thumbnails, filter out image styles that do not follow the numeric naming
+  // convention.
+  $styles = image_styles();
+  foreach ($styles as $key => $style) {
+    foreach (explode('x', $style['name']) as $name_part) {
+      if (!is_numeric($name_part)) {
+        unset($styles[$key]);
+        continue 2;
+      }
+    }
+  }
+
+  return $styles;
+}
+
+/**
+ * Generates the context array for a given image style, as required by
+ * hook_scald_contexts(). This is just a helper funciton to keep the code a bit
+ * more tidy.
+ *
+ * @param array $style
+ *   The image style to generate the context array for.
+ *
+ * @return array
+ *   The context array as required by hook_scald_contexts().
+ */
+function _scald_extra_context_array($style) {
+  return array(
+    'title' => t('Image ' . $style['label']),
+    'description' => t('Image only without metadata using the ' . $style['label'] . ' style'),
+    'render_language' => 'XHTML',
+    'parseable' => TRUE,
+    'hidden' => FALSE,
+    'formats' => array(
+      'image' => array('jpeg', 'png', 'passthrough'),
+    ),
+  );
 }

@@ -230,7 +230,7 @@ function _scald_extra_image_styles($option) {
  * @return array
  *   The context array as required by hook_scald_contexts().
  */
-function _scald_extra_context_array($style) {
+function _scald_extra_context_array(array $style) {
   return array(
     'title' => t('Image !label', array('!label' => $style['label'])),
     'description' => t('Image only without metadata using the !label style', array('!label' => $style['label'])),

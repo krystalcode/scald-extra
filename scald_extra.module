@@ -208,7 +208,7 @@ function _scald_extra_image_styles($option) {
 
 /**
  * Generates the context array for a given image style, as required by
- * hook_scald_contexts(). This is just a helper funciton to keep the code a bit
+ * hook_scald_contexts(). This is just a helper function to keep the code a bit
  * more tidy.
  *
  * @param array $style

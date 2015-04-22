@@ -33,11 +33,14 @@ function scald_extra_menu() {
 /**
  * Implements hook_scald_contexts().
  *
- * It automatically generates a context for each image style that follows the
- * format "width"x"height" e.g. 100x100 or simply 100. The context is named
- * image_"width"x"height" e.g. image_100x100 or image_100. This, together with
- * the scald_extra_scald_render() hook, provide an easy way to have all image
- * styles available in content view modes for rendering images (through atoms).
+ * It automatically generates a context for all or some image styles. This,
+ * together with the scald_extra_scald_render() hook, provide an easy way to
+ * have all image styles available in content view modes for rendering images
+ * (through atoms).
+ *
+ * The value of the variable "scald_extra_generate_context" defines which image
+ * styles to generate thumbnails for, and it can be set at the Scald Extra
+ * administration page.
  *
  * @Issue("Allow to choose which image styles to generate contexts for")
  */
@@ -82,11 +85,17 @@ function scald_extra_form_scald_atom_add_form_options_alter(&$form, &$form_state
 }
 
 /**
- * Custom submit callback that generates thumbnails for all image styles for
- * the uploaded image. This is done when uploading an image (in an atom) to
+ * Pre-generates thumbnails upon form submission.
+ *
+ * Custom submit callback that generates thumbnails for all or some image styles
+ * for the uploaded image. This is done when uploading an image (in an atom) to
  * avoid performance issues in the case that many images are uploaded or
  * updated, or to avoid problems that happen sometimes with the thumbnails not
  * being generated until the next cache clearing.
+ *
+ * The value of the variable "scald_extra_generate_thumbnails" defines which
+ * image styles to generate thumbnails for, and it can be set at the Scald Extra
+ * administration page.
  *
  * @Issue(
  *   "Request a hook_scald_atom_insert() and move the code there",
@@ -159,8 +168,11 @@ function _scald_extra_atom_add_form_options_submit_thumbnails(&$form, &$form_sta
 }
 
 /**
- * Get the image styles to generate context or thumbnails for based on the
- * corresponding configuration option.
+ * Returns the image styles to generate context or thumbnails for.
+ *
+ * Given a configuration option, this function returns the corresponding image
+ * styles. It should be used to get the image styles to generate context or
+ * thumbnails for based on the corresponding configuration option.
  *
  * @param string $option
  *   The configuration option that should be choice between 'all', 'numeric' or
@@ -207,9 +219,10 @@ function _scald_extra_image_styles($option) {
 }
 
 /**
- * Generates the context array for a given image style, as required by
- * hook_scald_contexts(). This is just a helper function to keep the code a bit
- * more tidy.
+ * Generates the context array for a given image style.
+ *
+ * The context array is prepared as required by hook_scald_contexts(). This
+ * function is just a helper function to keep the code a bit more tidy.
  *
  * @param array $style
  *   The image style to generate the context array for.

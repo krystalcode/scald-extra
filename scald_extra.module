@@ -38,7 +38,7 @@ function scald_extra_menu() {
  * have all image styles available in content view modes for rendering images
  * (through atoms).
  *
- * The value of the variable "scald_extra_generate_context" defines which image
+ * The value of the variable "scald_extra_generate_contexts" defines which image
  * styles to generate thumbnails for, and it can be set at the Scald Extra
  * administration page.
  *

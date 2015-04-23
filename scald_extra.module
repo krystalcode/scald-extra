@@ -43,6 +43,7 @@ function scald_extra_menu() {
  * administration page.
  *
  * @Issue("Allow to choose which image styles to generate contexts for")
+ * @Issue("Optionally display a success message with the contexts that were generated")
  */
 function scald_extra_scald_contexts() {
   $contexts = array();
@@ -102,6 +103,7 @@ function scald_extra_form_scald_atom_add_form_options_alter(&$form, &$form_state
  *   type="task",
  *   priority="low"
  * )
+ * @Issue("Optionally display a success message with the thumbnails that were generated")
  */
 function _scald_extra_atom_add_form_options_submit_thumbnails(&$form, &$form_state) {
   // Get the image styles to generate thumbnails for.

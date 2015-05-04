@@ -23,7 +23,7 @@ To submit bug reports and feature suggestions, or to track changes:
 
 -- REQUIREMENTS --
 
-None.
+The Scald module is required to be installed and enabled.
 
 
 -- INSTALLATION --

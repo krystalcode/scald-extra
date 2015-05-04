@@ -3,5 +3,6 @@ description = A module that provides additional useful functionality for SCALD p
 package = Scald
 core = 7.x
 php = 5.3.3
+configure = admin/config/content/scald/extra
 
 dependencies[] = scald

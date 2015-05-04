@@ -186,7 +186,7 @@ function _scald_extra_atom_add_form_options_submit_thumbnails(&$form, &$form_sta
 }
 
 /**
- * Returns the image styles to generate context or thumbnails for.
+ * Returns the image styles to generate contexts or thumbnails for.
  *
  * Given a configuration option, this function returns the corresponding image
  * styles. It should be used to get the image styles to generate context or

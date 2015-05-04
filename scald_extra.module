@@ -5,6 +5,22 @@
  */
 
 /**
+ * Implements hook_help().
+ */
+function scald_extra_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#scald_extra':
+      $output = '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The Scald Extra module provides additional useful functionality for projects using the Scald module ecosystem. Currently provided features are the following.') . '</p>';
+      $output .= '<ul>';
+      $output .= '<li>' . t('Automatic generation and rendering of scald contexts for selected image styles that render the atom as its image only.') . '</li>';
+      $output .= '<li>' . t('Automatic generation of thumbnails for selected image styles when an image file is uploaded for an atom.') . '</li>';
+      $output .= '</ul>';
+      return $output;
+  }
+}
+
+/**
  * Implements hook_menu().
  */
 function scald_extra_menu() {

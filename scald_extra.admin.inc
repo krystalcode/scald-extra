@@ -32,5 +32,12 @@ function scald_extra_admin_settings($form, &$form_state) {
     '#description' => t('Generate thumbnails for all image styles when uploading an image (thumbnail) for an atom. This can help to avoid performance issues in the case that many images are uploaded or updated, or to avoid problems that happen sometimes with the thumbnails not being generated until the next time the cache is cleared. The meaning of the Numeric option is the same as with the generating contexts.<br /><br />Note that thumbnails will be generated <strong>only when an atom image is uploaded through the UI</strong> on the website and not programatically due to lack of an appropriate hook in the scald core module.'),
   );
 
+  $form['scald_extra_view_mode'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use the default view mode when rendering the atom view page'),
+    '#default_value' => variable_get('scald_extra_view_mode', TRUE),
+    '#description' => t('The atom view page provided by the scald module is rendered using the default scald context. Enable this option to render it using the default view mode instead, if you want to take advantage of features like customise the display for each field or use field groups.<br /><br />This feature <strong>depends on the entity module</strong> being installed and enable; it will have no effect otherwise.'),
+  );
+
   return system_settings_form($form);
 }

@@ -6,3 +6,7 @@ php = 5.3.3
 configure = admin/config/content/scald/extra
 
 dependencies[] = scald
+
+files[] = views/scald_extra.views.inc
+files[] = views/scald_extra.views_default.inc
+files[] = views/scald_extra_plugin_display_library.inc

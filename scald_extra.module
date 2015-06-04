@@ -302,6 +302,16 @@ function scald_extra_theme(&$existing, $type, $theme, $path) {
 }
 
 /**
+ * Implements hook_views_api().
+ */
+function scald_extra_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'scald_extra') . '/views',
+  );
+}
+
+/**
  * Implements hook_js_alter().
  */
 function scald_extra_js_alter(&$javascript) {

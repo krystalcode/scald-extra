@@ -260,3 +260,26 @@ function _scald_extra_context_array(array $style) {
     ),
   );
 }
+
+/**
+ * Implements hook_theme().
+ */
+function scald_extra_theme(&$existing, $type, $theme, $path) {
+  $hooks['scald_extra_dnd_library'] = array(
+    // @Issue("These variables are probably not needed to be passed")
+    'variables' => array(
+      'summary_search_title' => '',
+      'summary_search_subtitle' => '',
+      'summary_list_title' => '',
+      'summary_list_subtitle' => '',
+      'list-summary' => array(),
+      'add-buttons' => array(),
+      'toggle-button' => NULL,
+      'search-button' => NULL,
+      'filters' => NULL,
+      'list' => array(),
+    ),
+    'template' => 'templates/dnd-library',
+  );
+  return $hooks;
+}

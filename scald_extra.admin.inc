@@ -5,9 +5,9 @@
  */
 
 /**
- * Returns the configuration form.
+ * Returns the Scald Extra configuration form.
  */
-function scald_extra_admin_settings($form, &$form_state) {
+function scald_extra_admin_scald_settings($form, &$form_state) {
   $form['scald_extra_generate_contexts'] = array(
     '#type' => 'select',
     '#title' => t('The image styles to generate contexts for'),
@@ -109,6 +109,56 @@ function scald_extra_admin_settings($form, &$form_state) {
       '#default_icon' => !empty($defaults['icon']) ? $defaults['icon'] : $icon_defaults['icons']['embed'],
     );
   }
+
+  return system_settings_form($form);
+}
+
+/**
+ * Returns the Scald Extra configuration form for the DND Library.
+ */
+function scald_extra_admin_dnd_settings($form, &$form_state) {
+  // @Issue("Disable or discourage use if the bootstrap theme and/or the icon
+  // modules are not enabled")
+  $form['scald_extra_dnd_library'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Replace the default DND Library with the Scald Extra alternative'),
+    '#default_value' => variable_get('scald_extra_dnd_library', TRUE),
+    '#description' => t('Scald Extra provides an alternative version of the DND Library with identical functionality but more modern look and feel. Enable this option to use it instead of the library provided by the Scald DND Library module.'),
+  );
+
+  $form['scald_extra_dnd_css'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Apply the default Scald Extra DND Library theme'),
+    '#default_value' => variable_get('scald_extra_dnd_css', TRUE),
+    '#description' => t('You would normally want to keep this option enabled unless you provide your own theme, or unless you use SASS and you want to customise the provided theme by overriding some of its variables in your own theme.'),
+  );
+
+  $form['scald_extra_dnd_wrapper_width'] = array(
+    '#type' => 'textfield',
+    '#title' => t('DND library width'),
+    '#size' => 4,
+    '#maxlength' => 4,
+    '#default_value' => variable_get('scald_extra_dnd_wrapper_width', 323),
+    '#description' => t('The width of the DND library when opened, in number of pixels.'),
+  );
+
+  $form['scald_extra_dnd_menu_width'] = array(
+    '#type' => 'textfield',
+    '#title' => t('DND library menu width'),
+    '#size' => 4,
+    '#maxlength' => 4,
+    '#default_value' => variable_get('scald_extra_dnd_menu_width', 41),
+    '#description' => t('The width of the DND library menu e.g. the library when closed, in number of pixels.'),
+  );
+
+  $form['scald_extra_dnd_content_width'] = array(
+    '#type' => 'textfield',
+    '#title' => t('DND library content width'),
+    '#size' => 4,
+    '#maxlength' => 4,
+    '#default_value' => variable_get('scald_extra_dnd_content_width', 280),
+    '#description' => t('The width of the DND library content (list of atoms), in number of pixels.'),
+  );
 
   return system_settings_form($form);
 }

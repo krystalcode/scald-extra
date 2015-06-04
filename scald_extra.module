@@ -37,7 +37,24 @@ function scald_extra_menu() {
     'title' => 'Extra',
     'description' => 'Configuration for the Scald Extra plugin',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('scald_extra_admin_settings'),
+    'page arguments' => array('scald_extra_admin_scald_settings'),
+    'access arguments' => array('administer scald'),
+    'file' => 'scald_extra.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  // Add a "Settings" default tab for the default DND Library configuration, so
+  // that we can add an additional tab for the Scald Extra configuration.
+  $items['admin/config/content/dnd/settings'] = array(
+    'title' => 'Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['admin/config/content/dnd/extra'] = array(
+    'title' => 'Extra',
+    'description' => 'Configuration for the Scald Extra plugin',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('scald_extra_admin_dnd_settings'),
     'access arguments' => array('administer scald'),
     'file' => 'scald_extra.admin.inc',
     'type' => MENU_LOCAL_TASK,

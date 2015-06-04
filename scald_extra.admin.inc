@@ -32,5 +32,83 @@ function scald_extra_admin_settings($form, &$form_state) {
     '#description' => t('Generate thumbnails for all image styles when uploading an image (thumbnail) for an atom. This can help to avoid performance issues in the case that many images are uploaded or updated, or to avoid problems that happen sometimes with the thumbnails not being generated until the next time the cache is cleared. The meaning of the Numeric option is the same as with the generating contexts.<br /><br />Note that thumbnails will be generated <strong>only when an atom image is uploaded through the UI</strong> on the website and not programatically due to lack of an appropriate hook in the scald core module.'),
   );
 
+  // Icons.
+  // @Issue("Add check whether the icon module is enabled")
+  $icon_defaults = _scald_extra_icon_defaults();
+
+  if (module_exists('scald_audio')) {
+    $defaults = variable_get('scald_extra_audio_icon');
+    $form['scald_extra_audio_icon'] = array(
+      '#type' => 'icon_selector',
+      '#title' => t('The icon to use for the audio scald atom type'),
+      '#default_bundle' => !empty($defaults['bundle']) ? $defaults['bundle'] : $icon_defaults['bundle'],
+      '#default_icon' => !empty($defaults['icon']) ? $defaults['icon'] : $icon_defaults['icons']['audio'],
+    );
+  }
+
+  if (module_exists('scald_file')) {
+    $defaults = variable_get('scald_extra_file_icon');
+    $form['scald_extra_file_icon'] = array(
+      '#type' => 'icon_selector',
+      '#title' => t('The icon to use for the file scald atom type'),
+      '#default_bundle' => !empty($defaults['bundle']) ? $defaults['bundle'] : $icon_defaults['bundle'],
+      '#default_icon' => !empty($defaults['icon']) ? $defaults['icon'] : $icon_defaults['icons']['file'],
+    );
+  }
+
+  if (module_exists('scald_image')) {
+    $defaults = variable_get('scald_extra_image_icon');
+    $form['scald_extra_image_icon'] = array(
+      '#type' => 'icon_selector',
+      '#title' => t('The icon to use for the image scald atom type'),
+      '#default_bundle' => !empty($defaults['bundle']) ? $defaults['bundle'] : $icon_defaults['bundle'],
+      '#default_icon' => !empty($defaults['icon']) ? $defaults['icon'] : $icon_defaults['icons']['image'],
+    );
+  }
+
+  if (
+    module_exists('scald_dailymotion') ||
+    module_exists('scald_vimeo') ||
+    module_exists('scald_youtube')
+  ) {
+    $defaults = variable_get('scald_extra_video_icon');
+    $form['scald_extra_video_icon'] = array(
+      '#type' => 'icon_selector',
+      '#title' => t('The icon to use for the video scald atom type'),
+      '#default_bundle' => !empty($defaults['bundle']) ? $defaults['bundle'] : $icon_defaults['bundle'],
+      '#default_icon' => !empty($defaults['icon']) ? $defaults['icon'] : $icon_defaults['icons']['video'],
+    );
+  }
+
+  if (module_exists('scald_url')) {
+    $defaults = variable_get('scald_extra_url_icon');
+    $form['scald_extra_url_icon'] = array(
+      '#type' => 'icon_selector',
+      '#title' => t('The icon to use for the url scald atom type'),
+      '#default_bundle' => !empty($defaults['bundle']) ? $defaults['bundle'] : $icon_defaults['bundle'],
+      '#default_icon' => !empty($defaults['icon']) ? $defaults['icon'] : $icon_defaults['icons']['url'],
+    );
+  }
+
+  if (module_exists('scald_iframe')) {
+    $defaults = variable_get('scald_extra_iframe_icon');
+    $form['scald_extra_iframe_icon'] = array(
+      '#type' => 'icon_selector',
+      '#title' => t('The icon to use for the iframe scald atom type'),
+      '#default_bundle' => !empty($defaults['bundle']) ? $defaults['bundle'] : $icon_defaults['bundle'],
+      '#default_icon' => !empty($defaults['icon']) ? $defaults['icon'] : $icon_defaults['icons']['iframe'],
+    );
+  }
+
+  if (module_exists('scald_embed')) {
+    $defaults = variable_get('scald_extra_embed_icon');
+    $form['scald_extra_embed_icon'] = array(
+      '#type' => 'icon_selector',
+      '#title' => t('The icon to use for the embed scald atom type'),
+      '#default_bundle' => !empty($defaults['bundle']) ? $defaults['bundle'] : $icon_defaults['bundle'],
+      '#default_icon' => !empty($defaults['icon']) ? $defaults['icon'] : $icon_defaults['icons']['embed'],
+    );
+  }
+
   return system_settings_form($form);
 }

@@ -373,3 +373,104 @@ function scald_extra_css_alter(&$css) {
   // separately.
   unset($css[$old_path]);
 }
+
+function _scald_extra_icon_defaults() {
+  if (module_exists('icon')) {
+    $bundles = icon_bundles();
+
+    if (!empty($bundles['fontawesome'])) {
+      return array(
+        'bundle' => 'fontawesome',
+        'icons' => _scald_extra_icon_defaults_fontawesome(),
+      );
+    }
+
+    if (!empty($bundles['bootstrap'])) {
+      return array(
+        'bundle' => 'bootstrap',
+        'icons' => _scald_extra_icon_defaults_bootstrap(),
+      );
+    }
+  }
+
+  if (
+    function_exists('_bootstrap_glyphicons_supported') &&
+    _bootstrap_glyphicons_supported()
+  ) {
+    return array(
+      'bundle' => 'bootstrap',
+      'icons' => _scald_extra_icon_defaults_bootstrap(),
+    );
+  }
+}
+
+function _scald_extra_icon_defaults_fontawesome() {
+  static $icon_defaults;
+  if (!isset($icon_defaults)) {
+    $icon_defaults = array(
+      'audio' => 'microphone',
+      'embed' => 'link',
+      'file' => 'file-o',
+      'iframe' => 'link',
+      'image' => 'picture-o',
+      'video' => 'video-camera',
+      'url' => 'link',
+    );
+  }
+
+  return $icon_defaults;
+}
+
+function _scald_extra_icon_defaults_bootstrap() {
+  static $icon_defaults;
+  if (!isset($icon_defaults)) {
+    $icon_defaults = array(
+      'audio' => 'glyphicon-headphones',
+      'embed' => 'glyphicon-link',
+      'file' => 'glyphicon-file',
+      'iframe' => 'glyphicon-link',
+      'image' => 'glyphicon-picture',
+      'video' => 'glyphicon-facetime-video',
+      'url' => 'glyphicon-link',
+    );
+  }
+
+  return $icon_defaults;
+}
+
+function _scald_extra_icon($type) {
+  static $icons;
+
+  if (module_exists('icon')) {
+    $icon = variable_get('scald_extra_' . $type . '_icon');
+
+    if (!$icon) {
+      $icons = _scald_extra_icon_defaults();
+
+      if (!empty($icons)) {
+        $icon = array(
+          'bundle' => $icons['bundle'],
+          'icon' => $icons['icons'][$type],
+        );
+      }
+    }
+
+    if (!empty($icon['bundle'] && !empty($icon['icon']))) {
+      if ($icon['bundle'] === 'fontawesome') {
+        $icon['attributes']['class'][] = 'fa-fw';
+      }
+
+      return theme('icon', $icon);
+    }
+  }
+
+  if (
+    function_exists(_bootstrap_glyphicon_supported()) &&
+    _bootstrap_glyphicon_supported()
+  ) {
+    $icons = _scald_extra_icon_defaults_bootstrap();
+    return '<i class="icon glyphicon glyphicon-' . $icons[$type] . '"></i>';
+  }
+
+  return '';
+}

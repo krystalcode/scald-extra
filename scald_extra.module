@@ -300,3 +300,66 @@ function scald_extra_theme(&$existing, $type, $theme, $path) {
   );
   return $hooks;
 }
+
+/**
+ * Implements hook_js_alter().
+ */
+function scald_extra_js_alter(&$javascript) {
+  if (!variable_get('scald_extra_dnd_library', TRUE)) {
+    return;
+  }
+
+  $old_path = 'sites/all/modules/scald/modules/library/dnd/js/dnd-library.js';
+  $new_path = 'sites/all/modules/scald_extra/js/dnd-library.js';
+
+  // Let the dnd module to control when the js should be loaded and when not. If
+  // the original js is not included, nothing to do here.
+  if (!isset($javascript[$old_path])) {
+    return;
+  }
+
+  // Pass on the width variables to js.
+  $settings = array(
+    'dnd_wrapper_width' => variable_get('scald_extra_dnd_wrapper_width', '323'),
+    'dnd_menu_width' => variable_get('scald_extra_dnd_menu_width', '41'),
+    'dnd_content_width' => variable_get('scald_extra_dnd_content_width', '280'),
+  );
+  drupal_add_js(
+    array('scald_extra' => $settings),
+    'setting'
+  );
+
+  // Replace the js path keeping the rest of its settings the same.
+  $javascript[$new_path] = $javascript[$old_path];
+  $javascript[$new_path]['data'] = $new_path;
+  unset($javascript[$old_path]);
+}
+
+/**
+ * Implements hook_css_alter().
+ */
+function scald_extra_css_alter(&$css) {
+  if (!variable_get('scald_extra_dnd_library', TRUE)) {
+    return;
+  }
+
+  $old_path = 'sites/all/modules/scald/modules/library/dnd/css/dnd-library.css';
+  $new_path = 'sites/all/modules/scald_extra/css/dnd-library.css';
+
+  // Let the dnd module to control when the js should be loaded and when not. If
+  // the original js is not included, nothing to do here.
+  if (!isset($css[$old_path])) {
+    return;
+  }
+
+  // Replace the css path keeping the rest of its settings the same.
+  if (variable_get('scald_extra_dnd_css')) {
+    $css[$new_path] = $css[$old_path];
+    $css[$new_path]['data'] = $new_path;
+  }
+
+  // We're removing the old css even if the "scald_extra_dnd_css" is set to
+  // FALSE, because this would mean that we will be providing the styles
+  // separately.
+  unset($css[$old_path]);
+}

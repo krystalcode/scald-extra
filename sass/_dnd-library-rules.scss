@@ -1,0 +1,281 @@
+.dnd-library-wrapper {
+    position: fixed;
+    top: $dnd-position-top;
+    right: 0;
+    width: $dnd-menu-width;
+    z-index: 999;
+    background: #fff;
+    border: 1px solid $dnd-color;
+    border-right: 0;
+    border-top-left-radius: $dnd-border-radius;
+    border-bottom-left-radius: $dnd-border-radius;
+
+    .view-filters {
+        display: none;
+    }
+
+    &.search-on.library-on {
+        .summary-list {
+            display: none;
+        }
+        .summary-search {
+            display: inherit;
+        }
+
+        .scald-menu {
+            .toggle {
+                .fa-search {
+                    display: none;
+                }
+                .fa-th-list {
+                    display: inherit;
+                }
+            }
+        }
+
+        .view-filters {
+            display: inherit;
+        }
+
+        .view-content,
+        .pager-wrapper {
+            display: none;
+        }
+    }
+
+    &.library-on {
+        top: 0;
+        width: $dnd-menu-width + $dnd-content-width + 2;
+        height: 100%;
+
+        .summary {
+            display: inherit;
+        }
+
+        .summary-search {
+            display: none;
+        }
+
+        .scald-menu {
+            height: 100%;
+        }
+
+        .add-buttons {
+            height: 100%;
+            border-right: 1px solid $dnd-inner-border;
+        }
+
+        .toggle {
+            padding: 7px 8px;
+
+            .fa-search {
+                display: inherit;
+            }
+            .fa-th-list {
+                display: none;
+            }
+        }
+
+        .scald-anchor {
+            padding: 4px 0 7px 12px;
+            .fa-angle-double-left {
+                display: none;
+            }
+            .fa-angle-double-right {
+                display: inherit;
+            }
+        }
+
+        .scald-library {
+            display: inherit;
+            height: 100%;
+        }
+    }
+
+    &.search-on {
+        .scald-menu {
+            .toggle {
+                .fa-search {
+                    display: none;
+                }
+                .fa-th-list {
+                    display: inherit;
+                }
+            }
+        }
+    }
+
+    &.animate {
+        .view-content {
+            .fa {
+                display: none;
+            }
+        }
+    }
+}
+
+.summary {
+    display: none;
+    color: $dnd-color;
+    height: $dnd-summary-height;
+    padding: $dnd-summary-padding;
+    border-bottom: 1px solid $dnd-inner-border;
+
+    .title,
+    .small {
+        margin-left: $dnd-menu-width - $dnd-summary-padding + 4px;
+    }
+
+    .title {
+        font-size: $dnd-summary-title-font-size;
+    }
+
+    ul {
+        display: none;
+    }
+}
+
+.scald-menu {
+    width: 100%;
+    float: left;
+
+    .toggle {
+        font-size: $dnd-toggle-icon-size;
+        cursor: pointer;
+        color: $dnd-color;
+        width: $dnd-menu-width;
+        height: $dnd-menu-width;
+        padding: 2px 8px;
+
+        .fa-th-list {
+            display: none;
+        }
+    }
+
+    .add-buttons {
+        float: left;
+
+        ul {
+            margin-top: 10px;
+        }
+
+        li {
+            width: $dnd-menu-width;
+            height: 38px;
+            padding: 5px;
+        }
+
+        a {
+            color: $dnd-color;
+            font-size: $dnd-menu-icon-size;
+
+            &.progress-disabled {
+                > .icon {
+                    display: none;
+                }
+            }
+        }
+
+        li:hover,
+        li:focus {
+            padding: 2px;
+
+            a {
+                font-size: $dnd-menu-icon-size-hover;
+            }
+        }
+    }
+}
+
+.scald-library {
+    position: absolute;
+    top: $dnd-summary-height;
+    right: 0;
+    width: $dnd-content-width;
+    overflow-x: hidden;
+    overflow-y: auto;
+    float: left;
+    display: none;
+
+    .view-filters {
+        padding: 10px 15px;
+
+        .views-exposed-form .views-exposed-widget {
+            float: none;
+            padding-right: 0;
+        }
+
+        label {
+            //display: none;
+        }
+
+        .form-submit {
+            margin-top: 0 !important;
+        }
+    }
+
+    .alert {
+        border-radius: 0;
+        margin-bottom: 0;
+    }
+
+    .view-content {
+        .list-group-item {
+            border-left: 0;
+            border-radius: 0;
+            padding: 10px;
+
+            &:first-child {
+                border-top: 0;
+            }
+        }
+
+        .media {
+            a {
+                color: $dnd-color;
+            }
+        }
+
+        .fa {
+            font-size: 20px;
+            color: $dnd-inner-border;
+            margin-left: 10px;
+        }
+    }
+
+    .pager-wrapper {
+        .pager-spinner {
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+            font-size: 24px;
+        }
+    }
+}
+
+.scald-anchor {
+    color: #fff;
+    background: $dnd-color;
+    font-size: $dnd-anchor-icon-size;
+    width: $dnd-menu-width;
+    height: $dnd-menu-width;
+    padding-left: 10px;
+    border-radius: 0;
+    cursor: pointer;
+
+    &:hover,
+    &:focus {
+        color: #fff;
+    }
+
+    .fa-angle-double-right {
+        display: none;
+    }
+}
+
+// MEE.
+.dnd-legend-wrapper {
+    border: 1px solid #ccc;
+    border-top: 0;
+    padding: 3px 9px 6px;
+}

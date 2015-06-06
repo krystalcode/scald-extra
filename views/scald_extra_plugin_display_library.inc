@@ -155,7 +155,7 @@ class scald_extra_plugin_display_library extends views_plugin_display_page {
       scald_dnd_library_add_item($library, $sid);
     }
 
-    $library = array('library' => theme(
+    $library['library'] = theme(
       'scald_extra_dnd_library',
       array(
         'search_title' => t('Search'),
@@ -166,7 +166,7 @@ class scald_extra_plugin_display_library extends views_plugin_display_page {
         'list' => $library['library'],
         'messages' => theme('status_messages'),
       )
-    ));
+    );
     drupal_json_output($library);
   }
 }

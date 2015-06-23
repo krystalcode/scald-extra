@@ -68,15 +68,21 @@ class ScaldAtomEntityAPIController extends EntityAPIController {
       return $build;
     }
 
+    $video_width = isset($entity->data['video_width']) ? $entity->data['video_width'] : 480;
+    $video_height = isset($entity->data['video_height']) ? $entity->data['video_height'] : 365;
+    $list = isset($entity->data['list']) ? '?list=' . $entity->data['list'] : '';
+
     $build['atom'] = array(
       '#type' => 'markup',
       '#markup' => theme(
         'scald_youtube_player',
-        array('vars' =>
-          array(
-            'video_id'      => $entity->base_id,
-            'video_width'   => ($entity->data['video_width'] ? $entity->data['video_width'] : 480),
-            'video_height'  => ($entity->data['video_height'] ? $entity->data['video_height'] : 365),
+        array(
+          'vars' => array(
+            'video_id'     => $entity->base_id,
+            'video_width'  => $video_width,
+            'video_height' => $video_height,
+            'list'         => $list,
+            'title'        => check_plain($entity->title),
           ),
         )
       ),

@@ -71,8 +71,17 @@ function _scald_extra_atom_page_view($atom) {
  * styles to generate thumbnails for, and it can be set at the Scald Extra
  * administration page.
  *
- * @Issue("Allow to choose which image styles to generate contexts for")
- * @Issue("Optionally display a success message with the contexts that were generated")
+ * @Issue(
+ *   "Allow to choose which image styles to generate contexts for",
+ *   type="feature",
+ *   priority="normal"
+ * )
+ * @Issue(
+ *   "Optionally display a success message with the contexts that were
+ *   generated",
+ *   type="improvement",
+ *   priority="low"
+ * )
  */
 function scald_extra_scald_contexts() {
   $contexts = array();
@@ -94,7 +103,11 @@ function scald_extra_scald_contexts() {
  * Render the image only without any metadata (authors, tags) when the context
  * starts with image_ e.g. image_100x100.
  *
- * @Issue("Allow to choose whether to render metadata or not")
+ * @Issue(
+ *   "Allow to choose whether to render metadata or not",
+ *   type="feature",
+ *   priority="low"
+ * )
  */
 function scald_extra_scald_render($atom, $context, $options) {
   if (strpos($context, 'image_') !== 0) {
@@ -128,11 +141,16 @@ function scald_extra_form_scald_atom_add_form_options_alter(&$form, &$form_state
  * administration page.
  *
  * @Issue(
- *   "Request a hook_scald_atom_insert() and move the code there",
- *   type="task",
+ *   "Request a hook_scald_atom_insert and move the code there",
+ *   type="improvement",
+ *   priority="normal"
+ * )
+ * @Issue(
+ *   "Optionally display a success message with the thumbnails that were
+ *   generated"
+ *   type="improvement",
  *   priority="low"
  * )
- * @Issue("Optionally display a success message with the thumbnails that were generated")
  */
 function _scald_extra_atom_add_form_options_submit_thumbnails(&$form, &$form_state) {
   // Get the image styles to generate thumbnails for.

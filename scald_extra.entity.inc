@@ -58,8 +58,16 @@ class ScaldAtomEntityAPIController extends EntityAPIController {
    * and the only way to render the atom's main content is by rendering it using
    * its player.
    *
-   * @Issue("Extend support to other video providers apart from YouTube")
-   * @Issue("Implement similar approach for other atom types as needed")
+   * @Issue(
+   *   "Extend support to other video providers apart from YouTube",
+   *   type="improvement",
+   *   priority="normal"
+   * )
+   * @Issue(
+   *   "Implement similar approach for other atom types as needed",
+   *   type="improvement",
+   *   priority="normal"
+   * )
    */
   function buildContent($entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
     $build = parent::buildContent($entity, $view_mode, $langcode, $content);

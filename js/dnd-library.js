@@ -18,6 +18,38 @@ Drupal.dnd = {
   // Keep track of the last focused textarea.
   lastFocus: null,
 
+  // Default settings for the qTip v2 library
+  defaultqTipSettings: {
+    position: {
+      my: 'right center',
+      at: 'left center'
+    },
+    hide: {
+      fixed: true,
+      delay: 200
+    },
+    show: {
+      solo: true
+    },
+    style: {
+      classes: 'ui-tooltip-scald-dnd'
+    }
+  },
+
+  // Additional settings for the deprecated qTip v1
+  qTip1Settings: {
+    position: {
+      corner: {
+        target: 'leftMiddle',
+        tooltip: 'rightMiddle'
+      }
+    },
+    style: {
+      width: 550,
+      classes: {tooltip: 'ui-tooltip-scald-dnd'}
+    }
+  },
+
   /**
    * Fetch atoms that are not present.
    *
@@ -28,7 +60,6 @@ Drupal.dnd = {
    *   Callback when all required atoms are available.
    */
   fetchAtom: function(context, atom_ids, callback) {
-    console.log(atoms_ids);
     // Convert to array
     atom_ids = [].concat(atom_ids);
 
@@ -43,7 +74,7 @@ Drupal.dnd = {
     atom_ids = atom_ids.filter(Number);
 
     if (atom_ids.length) {
-      $.getJSON(Drupal.settings.basePath + 'atom/fetch/' + atom_ids.join() + '?context=' + context, function(data) {
+      $.getJSON(Drupal.dnd.prepareUrl('atom/fetch/' + atom_ids.join(), 'context=' + context), function(data) {
         for (var atom_id in data) {
           if (Drupal.dnd.Atoms[atom_id]) {
             // Merge old data into the new return atom.
@@ -72,8 +103,16 @@ Drupal.dnd = {
 
   // Convert HTML to SAS. We consider there is no nested elements.
   html2sas: function(text) {
-    text = text.replace(/<!-- (scald=(\d+):([a-z_]+)) -->[\r\n\s\S]*?<!-- END scald=\2 -->/g, '[$1]');
+    text = text.replace(/<!-- (scald=(\d+):([a-z_]+))(.*) -->[\r\n\s\S]*?<!-- END scald=\2 -->/g, '[$1$4]');
     return text;
+  },
+
+  // Salvage data from HTML comment and return the SAS representation.
+  htmlcomment2sas: function(text) {
+    var matches = text.match(/<!-- (scald=(\d+):([a-z_]+))([^>]*) -->/);
+    if (matches && matches.length) {
+      return '[' + matches[1] + matches[4] + ']';
+    }
   },
 
   // Convert SAS to HTML.
@@ -131,16 +170,38 @@ Drupal.dnd = {
    * Insert an atom in the current RTE or textarea.
    */
   insertAtom: function(sid) {
-    var cke = Drupal.ckeditorInstance;
-    if (cke) {
-      var markup = Drupal.theme('scaldEmbed', Drupal.dnd.Atoms[sid]);
-      cke.insertElement(CKEDITOR.dom.element.createFromHtml(markup));
+    var editor = Drupal.ckeditorInstance;
+    if (editor && editor.dndInsertAtom) {
+      // Defer to the correct method given the plugin used by this editor.
+      editor.dndInsertAtom(sid);
     }
     else if (Drupal.dnd.lastFocus) {
       var markup = Drupal.dnd.Atoms[sid].sas;
       Drupal.dnd.insertText(Drupal.dnd.lastFocus, markup);
     }
     return true;
+  },
+
+  /**
+   * Prepare a url as required for ajax calls, taking into account whether clean
+   * urls are enabled or disabled.
+   */
+  prepareUrl: function(path, params) {
+    queryPrefix = '';
+    paramPrefix = '?';
+
+    if (!Drupal.settings.dnd.clean_url) {
+      queryPrefix = '?q=';
+      paramPrefix = '&';
+    }
+
+    var url = Drupal.settings.basePath + queryPrefix + path;
+
+    if (params !== undefined) {
+      url += paramPrefix + params;
+    }
+
+    return url;
   }
 };
 
@@ -223,42 +284,25 @@ renderLibrary: function(data, editor) {
     library: library_wrapper.hasClass('library-on')
   };
 
-  //console.log(data);
-  //library_wrapper.html(data.menu + data.anchor + data.library);
   library_wrapper.html(data.library);
   var scald_menu = library_wrapper.find('.scald-menu');
   var scald_library = library_wrapper.find('.scald-library');
+  var scald_filters = library_wrapper.find('.view-filters');
 
   scald_library.height(library_wrapper.outerHeight() - library_wrapper.find('.summary').outerHeight() - 2);
-
-  // Rearrange some element for better logic and easier theming.
-  // @todo We'd better do it on server side.
-/*
-  scald_menu
-    .prepend(library_wrapper.find('.summary'));
-    .after(library_wrapper.find('.view-filters').addClass('filters'));
-*/
-
-  var scald_filters = library_wrapper.find('.view-filters');
 
   if (dndStatus.search) {
     library_wrapper.addClass('library-on');
   }
   library_wrapper.find('.toggle').click(function() {
     library_wrapper.toggleClass('search-on');
-/*
-    // We toggle class only when animation finishes to avoid flash back.
-    scald_menu.animate({left: scald_menu.hasClass('search-on') ? '-42px' : '-256px'}, function() {
-      $(this).toggleClass('search-on');
-    });
-*/
+
     // When display search, we certainly want to display the library, too.
     if (!scald_menu.hasClass('search-on') && !library_wrapper.hasClass('library-on')) {
       $('.scald-anchor').click();
     }
   });
   library_wrapper.find('.scald-anchor').click(function() {
-    //library_wrapper.toggleClass('library-on');
     // We toggle class only when animation finishes to avoid flash back.
     if (library_wrapper.hasClass('library-on')) {
       library_wrapper.animate({
@@ -279,7 +323,6 @@ renderLibrary: function(data, editor) {
       library_wrapper.animate({
         width: Drupal.settings.scald_extra.dnd_wrapper_width + 'px'
       }, { duration: 500, queue: false, start: function() {
-        console.log();
         scald_library.width('0');
         library_wrapper.toggleClass('library-on');
         library_wrapper.toggleClass('animate');
@@ -294,11 +337,6 @@ renderLibrary: function(data, editor) {
         scald_library.height(library_wrapper.outerHeight() - library_wrapper.find('.summary').outerHeight() - 2);
       }});
     }
-/*
-    scald_library.animate({
-      width: library_wrapper.hasClass('library-on') ? '0' : '452px'
-    }, { duration: 500, queue: false });
-*/
   });
 
   for (var atom_id in data.atoms) {
@@ -310,7 +348,15 @@ renderLibrary: function(data, editor) {
 
     // And add a nice preview behavior if qTip is present
     if ($.prototype.qtip) {
-      var settings = $.extend(Drupal.dnd.qTipSettings, {
+      if (Drupal.settings.dnd.qTipSettings === '') {
+        Drupal.settings.dnd.qTipSettings = Drupal.dnd.defaultqTipSettings;
+      }
+      else {
+        if (typeof Drupal.settings.dnd.qTipSettings !== 'object') {
+          Drupal.settings.dnd.qTipSettings = JSON.parse(Drupal.settings.dnd.qTipSettings);
+        }
+      }
+      var settings = $.extend(Drupal.settings.dnd.qTipSettings, {
         content: {
           text: Drupal.dnd.Atoms[atom_id].preview
         }
@@ -370,7 +416,6 @@ renderLibrary: function(data, editor) {
         }
         var id = $img.data('atom-id');
         dt.dropEffect = 'copy';
-        console.log(Drupal.dnd.Atoms);
         dt.setData("Text", Drupal.dnd.Atoms[id].sas);
         Drupal.dnd.currentAtom = Drupal.dnd.Atoms[id].sas;
         try {
@@ -384,6 +429,7 @@ renderLibrary: function(data, editor) {
         return true;
       })
       .bind('dragend', function(e) {
+        delete Drupal.dnd.currentAtom;
         return true;
       });
   });

@@ -4,6 +4,8 @@
  * Module file for the scald_extra module.
  */
 
+include_once 'scald_extra.entity.inc';
+
 /**
  * Implements hook_help().
  */
@@ -64,6 +66,33 @@ function scald_extra_menu() {
 }
 
 /**
+ * Implements hook_menu_alter().
+ *
+ * The atom view page provided by the scald module is rendered using the
+ * scald_render() function that renders the atom using its context and does not
+ * take view modes into account. Override the page callback here so that we can
+ * use view modes and take advantage of features like field groups.
+ */
+function scald_extra_menu_alter(&$items) {
+  // The page callback requires the entity module to be enabled.
+  if (variable_get('scald_extra_view_mode', TRUE) && module_exists('entity')) {
+    $items['atom/%scald_atom']['page callback'] = '_scald_extra_atom_page_view';
+  }
+}
+
+/**
+ * Render the atom view page using the default view mode.
+ */
+function _scald_extra_atom_page_view($atom) {
+  // The default ScaldAtomController extends the DrupalDefaultEntityController
+  // probably so that it doesn't depend on the entity module. We to make use of
+  // the page building and rendering functionality provided by the entity
+  // module, so we use a custom controller that extends EntityAPIController.
+  $controller = new ScaldAtomEntityAPIController('scald_atom');
+  return $controller->view(array($atom), 'full');
+}
+
+/**
  * Implements hook_scald_contexts().
  *
  * It automatically generates a context for all or some image styles. This,
@@ -75,8 +104,17 @@ function scald_extra_menu() {
  * styles to generate thumbnails for, and it can be set at the Scald Extra
  * administration page.
  *
- * @Issue("Allow to choose which image styles to generate contexts for")
- * @Issue("Optionally display a success message with the contexts that were generated")
+ * @Issue(
+ *   "Allow to choose which image styles to generate contexts for",
+ *   type="feature",
+ *   priority="normal"
+ * )
+ * @Issue(
+ *   "Optionally display a success message with the contexts that were
+ *   generated",
+ *   type="improvement",
+ *   priority="low"
+ * )
  */
 function scald_extra_scald_contexts() {
   $contexts = array();
@@ -98,7 +136,11 @@ function scald_extra_scald_contexts() {
  * Render the image only without any metadata (authors, tags) when the context
  * starts with image_ e.g. image_100x100.
  *
- * @Issue("Allow to choose whether to render metadata or not")
+ * @Issue(
+ *   "Allow to choose whether to render metadata or not",
+ *   type="feature",
+ *   priority="low"
+ * )
  */
 function scald_extra_scald_render($atom, $context, $options) {
   if (strpos($context, 'image_') !== 0) {
@@ -132,11 +174,16 @@ function scald_extra_form_scald_atom_add_form_options_alter(&$form, &$form_state
  * administration page.
  *
  * @Issue(
- *   "Request a hook_scald_atom_insert() and move the code there",
- *   type="task",
+ *   "Request a hook_scald_atom_insert and move the code there",
+ *   type="improvement",
+ *   priority="normal"
+ * )
+ * @Issue(
+ *   "Optionally display a success message with the thumbnails that were
+ *   generated"
+ *   type="improvement",
  *   priority="low"
  * )
- * @Issue("Optionally display a success message with the thumbnails that were generated")
  */
 function _scald_extra_atom_add_form_options_submit_thumbnails(&$form, &$form_state) {
   // Get the image styles to generate thumbnails for.

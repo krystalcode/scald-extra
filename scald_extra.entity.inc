@@ -54,31 +54,90 @@ class ScaldAtomEntityAPIController extends EntityAPIController {
    * Implements EntityAPIControllerInterface.
    *
    * Image and file atom types have a field file as the atom's main content and
-   * its display can be customised in the view mode. Video does not have a field
-   * and the only way to render the atom's main content is by rendering it using
-   * its player.
+   * its display can be customised in the view mode. URL and Video does not have
+   * a field and the only way to render the atom's main content is by rendering
+   * it using its player. Audio atom type does have a field, however we want to
+   * render the audio player as well.
+   */
+  function buildContent($entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+    $build = parent::buildContent($entity, $view_mode, $langcode, $content);
+
+    if (!in_array($entity->type, array('audio', 'url', 'video'))) {
+      return $build;
+    }
+
+    $function = 'build' . ucfirst($entity->type) . 'Content';
+    $build = $this->$function($build, $entity, $view_mode, $langcode, $content);
+
+    return $build;
+  }
+
+  /**
+   * @see $this->buildContent().
+   */
+  function buildAudioContent($build, $entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+    $build['atom'] = array(
+      '#type' => 'markup',
+      '#markup' => theme(
+        'scald_audio_player',
+        array('vars' =>
+          array(
+            'atom'      => $entity,
+            'audio_uri' => $entity->file_source,
+            'thumbnail' => $entity->thumbnail_source,
+          ),
+        )
+      ),
+    );
+
+    return $build;
+  }
+
+  /**
+   * @see $this->buildContent().
+   */
+  function buildUrlContent($build, $entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+    $build['atom'] = array(
+      '#type' => 'markup',
+      '#markup' => theme(
+        'scald_url_iframe_player',
+        array('vars' =>
+          array(
+            'iframe_url'    => $entity->{SCALD_URL_URL_FIELD}[$entity->language][0]['url'],
+            'iframe_width'  => (!empty($entity->data['width']) ? $entity->data['width'] : '100%'),
+            'iframe_height' => (!empty($entity->data['height']) ? $entity->data['height'] : '500px'),
+          ),
+        )
+      ),
+    );
+
+    return $build;
+  }
+
+  /**
+   * @see $this->buildContent().
    *
    * @Issue(
    *   "Extend support to other video providers apart from YouTube",
    *   type="improvement",
    *   priority="normal"
    * )
-   * @Issue(
-   *   "Implement similar approach for other atom types as needed",
-   *   type="improvement",
-   *   priority="normal"
-   * )
    */
-  function buildContent($entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
-    $build = parent::buildContent($entity, $view_mode, $langcode, $content);
-
-    if ($entity->type !== 'video') {
-      return $build;
-    }
-
+  function buildVideoContent($build, $entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
     $video_width = isset($entity->data['video_width']) ? $entity->data['video_width'] : 480;
     $video_height = isset($entity->data['video_height']) ? $entity->data['video_height'] : 365;
     $list = isset($entity->data['list']) ? '?list=' . $entity->data['list'] : '';
+
+    $query = array();
+    if (!empty($entity->data['list'])) {
+      $query['list'] = $entity->data['list'];
+    }
+    if (isset($entity->data['show_related']) && empty($entity->data['show_related'])) {
+      $query['rel'] = '0';
+    }
+    $video_url = url(SCALD_YOUTUBE_EMBED . $entity->base_id, array(
+      'query' => $query,
+    ));
 
     $build['atom'] = array(
       '#type' => 'markup',
@@ -89,7 +148,15 @@ class ScaldAtomEntityAPIController extends EntityAPIController {
             'video_id'     => $entity->base_id,
             'video_width'  => $video_width,
             'video_height' => $video_height,
-            'list'         => $list,
+            'video_url'    => $video_url,
+            /**
+             * @Issue(
+             *   "Pass the rendered thumbnail as well"
+             *   type="task"
+             *   priority="low"
+             * )
+             */
+            // 'thumbnail'    => $entity->rendered->thumbnail_source_url,
             'title'        => check_plain($entity->title),
           ),
         )

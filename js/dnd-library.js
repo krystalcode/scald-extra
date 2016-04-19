@@ -195,7 +195,7 @@ Drupal.dnd = {
       paramPrefix = '&';
     }
 
-    var url = Drupal.settings.basePath + queryPrefix + path;
+    var url = Drupal.settings.basePath + queryPrefix + Drupal.settings.pathPrefix + path;
 
     if (params !== undefined) {
       url += paramPrefix + params;

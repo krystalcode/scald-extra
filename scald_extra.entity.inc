@@ -54,10 +54,17 @@ class ScaldAtomEntityAPIController extends EntityAPIController {
    * Implements EntityAPIControllerInterface.
    *
    * Image and file atom types have a field file as the atom's main content and
-   * its display can be customised in the view mode. URL and Video does not have
-   * a field and the only way to render the atom's main content is by rendering
-   * it using its player. Audio atom type does have a field, however we want to
+   * its display can be customised in the view mode. URL and Video do not have a
+   * field and the only way to render the atom's main content is by rendering it
+   * using its player. Audio atom type does have a field, however we want to
    * render the audio player as well.
+   *
+   * @Issue(
+   *   "Is there a way to select the player to use for rendering the atom's main
+   *   content?"
+   *   type="improvement"
+   *   priority="normal"
+   * )
    */
   function buildContent($entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
     $build = parent::buildContent($entity, $view_mode, $langcode, $content);
@@ -66,7 +73,7 @@ class ScaldAtomEntityAPIController extends EntityAPIController {
       return $build;
     }
 
-    $function = 'build' . ucfirst($entity->type) . 'Content';
+    $function = 'buildContent_' . $entity->provider;
     $build = $this->$function($build, $entity, $view_mode, $langcode, $content);
 
     return $build;
@@ -75,7 +82,7 @@ class ScaldAtomEntityAPIController extends EntityAPIController {
   /**
    * @see $this->buildContent().
    */
-  function buildAudioContent($build, $entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+  function buildContent_scald_audio($build, $entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
     $build['atom'] = array(
       '#type' => 'markup',
       '#markup' => theme(
@@ -96,7 +103,7 @@ class ScaldAtomEntityAPIController extends EntityAPIController {
   /**
    * @see $this->buildContent().
    */
-  function buildUrlContent($build, $entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+  function buildContent_scald_url($build, $entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
     $build['atom'] = array(
       '#type' => 'markup',
       '#markup' => theme(
@@ -117,13 +124,80 @@ class ScaldAtomEntityAPIController extends EntityAPIController {
   /**
    * @see $this->buildContent().
    *
-   * @Issue(
-   *   "Extend support to other video providers apart from YouTube",
-   *   type="improvement",
-   *   priority="normal"
-   * )
+   * Currently uses Video JS as the player.
    */
-  function buildVideoContent($build, $entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+  function buildContent_scald_video($build, $entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+    global $base_url;
+
+    $video_datas = array();
+    $video_datas[] = array(
+      'path' => file_create_url($entity->file_source),
+      'mime_type' => file_get_mimetype($entity->file_source),
+    );
+
+    // Loading alternative video sources:
+    if (isset($entity->data['alternative_video_sources']) && count($entity->data['alternative_video_sources'])) {
+      foreach ($entity->data['alternative_video_sources'] as $key => $video_file) {
+        $video_datas[] = array(
+          'path' => file_create_url($video_file->uri),
+          'mime_type' => $video_file->filemime,
+        );
+      }
+    }
+
+    $video_sources = array();
+    foreach ($video_datas as $key => $video) {
+      $video_sources[] = array(
+        'path' => $video['path'],
+        'mime_type' => $video['mime_type'],
+      );
+    }
+
+    $build['atom'] = array(
+      '#markup' => theme('scald_video_player',
+        array('vars' =>
+          array(
+            'atom'          => $entity,
+            'video_sources' => $video_sources,
+            'video_width'   => check_plain($entity->data['video_width']),
+            'video_height'  => check_plain($entity->data['video_height']),
+            'thumbnail'     => $entity->thumbnail_source,
+            'class'         => 'scald_video',
+          ),
+        )
+      ),
+      '#attached' => array(
+        'css' => array(
+          'sites/all/libraries/video-js/video-js.min.css',
+        ),
+        'js' => array(
+          $base_url . '/sites/all/libraries/video-js/video.js' => array(
+            'scope' => 'header',
+            'group' => JS_LIBRARY,
+          ),
+          'videojs.options.flash.swf = "' . $base_url . '/sites/all/libraries/video-js/video-js.swf";' => array(
+            'type' => 'inline',
+            'scope' => 'header',
+          ),
+          0 => drupal_get_path('module', 'scald_video_videojs') . '/scald_video_videojs.js',
+        ),
+      ),
+    );
+    // JS Settings are updated separately to provide support for multiple videos atoms.
+    $build['atom']['#attached']['js'][1]['type'] = 'setting';
+    $build['atom']['#attached']['js'][1]['data']['scaldVideoPlayerVideoJS'][] = array(
+      'videoId' => 'scald-video-' . $entity->sid,
+      'videoWidth' => $entity->data['video_width'],
+      'videoHeight' => $entity->data['video_height'],
+    );
+
+    return $build;
+  }
+
+  /**
+   * @see $this->buildContent().
+   */
+  function buildContent_scald_youtube($build, $entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
     $video_width = isset($entity->data['video_width']) ? $entity->data['video_width'] : 480;
     $video_height = isset($entity->data['video_height']) ? $entity->data['video_height'] : 365;
     $list = isset($entity->data['list']) ? '?list=' . $entity->data['list'] : '';
@@ -149,14 +223,56 @@ class ScaldAtomEntityAPIController extends EntityAPIController {
             'video_width'  => $video_width,
             'video_height' => $video_height,
             'video_url'    => $video_url,
-            /**
-             * @Issue(
-             *   "Pass the rendered thumbnail as well"
-             *   type="task"
-             *   priority="low"
-             * )
-             */
-            // 'thumbnail'    => $entity->rendered->thumbnail_source_url,
+            'title'        => check_plain($entity->title),
+          ),
+        )
+      ),
+    );
+
+    return $build;
+  }
+
+  /**
+   * @see $this->buildContent().
+   */
+  function buildContent_scald_dailymotion($build, $entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+    $video_width  = !empty($entity->data['video_width']) ? $entity->data['video_width'] : 480;
+    $video_height = !empty($entity->data['video_height']) ? $entity->data['video_height'] : 365;
+
+    $build['atom'] = array(
+      '#type' => 'markup',
+      '#markup' => theme(
+        'scald_dailymotion_player',
+        array(
+          'vars' => array(
+            'video_id'     => $entity->base_id,
+            'video_width'  => $video_width,
+            'video_height' => $video_height,
+            'title'        => check_plain($entity->title),
+          ),
+        )
+      ),
+    );
+
+    return $build;
+  }
+
+  /**
+   * @see $this->buildContent().
+   */
+  function buildContent_scald_vimeo($build, $entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+    $video_width  = !empty($entity->data['video_width']) ? $entity->data['video_width'] : 480;
+    $video_height = !empty($entity->data['video_height']) ? $entity->data['video_height'] : 365;
+
+    $build['atom'] = array(
+      '#type' => 'markup',
+      '#markup' => theme(
+        'scald_vimeo_player',
+        array(
+          'vars' => array(
+            'video_id'     => $entity->base_id,
+            'video_width'  => $video_width,
+            'video_height' => $video_height,
             'title'        => check_plain($entity->title),
           ),
         )

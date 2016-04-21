@@ -129,27 +129,12 @@ class ScaldAtomEntityAPIController extends EntityAPIController {
   function buildContent_scald_video($build, $entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
     global $base_url;
 
-    $video_datas = array();
-    $video_datas[] = array(
-      'path' => file_create_url($entity->file_source),
-      'mime_type' => file_get_mimetype($entity->file_source),
-    );
-
-    // Loading alternative video sources:
-    if (isset($entity->data['alternative_video_sources']) && count($entity->data['alternative_video_sources'])) {
-      foreach ($entity->data['alternative_video_sources'] as $key => $video_file) {
-        $video_datas[] = array(
-          'path' => file_create_url($video_file->uri),
-          'mime_type' => $video_file->filemime,
-        );
-      }
-    }
-
     $video_sources = array();
-    foreach ($video_datas as $key => $video) {
+    $field_items = field_get_items('scald_atom', $entity, 'scald_video');
+    foreach ($field_items as $video_file) {
       $video_sources[] = array(
-        'path' => $video['path'],
-        'mime_type' => $video['mime_type'],
+        'path'      => file_create_url($video_file['uri']),
+        'mime_type' => $video_file['filemime'],
       );
     }
 

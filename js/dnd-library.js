@@ -406,7 +406,7 @@ renderLibrary: function(data, editor) {
         return Drupal.dnd.insertAtom($(this).data('atom-id'));
       })
       .bind('dragstart', function(e) {
-        var dt = e.originalEvent.dataTransfer, id = e.target.id, $this = $(this);
+        var dt = e.originalEvent.dataTransfer;
         var id = $(this).data('atom-id');
         dt.dropEffect = 'copy';
         dt.setData("Text", Drupal.dnd.Atoms[id].sas);

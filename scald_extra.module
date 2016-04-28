@@ -115,6 +115,12 @@ function _scald_extra_atom_page_view($atom) {
  *   type="improvement",
  *   priority="low"
  * )
+ * @Issue(
+ *   "Move bootstrap-related contexts and view modes to scald_bootstrap module"
+ *   type="task"
+ *   priority="normal"
+ *   labels="modularity"
+ * )
  */
 function scald_extra_scald_contexts() {
   $contexts = array();
@@ -126,6 +132,26 @@ function scald_extra_scald_contexts() {
   foreach ($styles as $style) {
     $contexts['image_' . $style['name']] = _scald_extra_context_array($style);
   }
+
+  // Add a context for the DND library item representation.
+  if (variable_get('scald_extra_dnd_library', TRUE)) {
+    $contexts['scald_bootstrap_library_item'] = array(
+      'title'           => t('Scald Bootstrap Library item'),
+      'description'     => t('The Scald Bootstrap DND Library Representation'),
+      'render_language' => 'XHTML',
+      'parseable'       => FALSE,
+      'formats'         => array(),
+    );
+  }
+
+  // Add a context or rendering atoms as Bootstrap media objects.
+  $contexts['scald_bootstrap_media_object'] = array(
+    'title'           => t('Bootstrap 3 Media Object'),
+    'description'     => t('Atom representation as a Bootstrap 3 media object.'),
+    'render_language' => 'XHTML',
+    'parseable'       => FALSE,
+    'formats'         => array(),
+  );
 
   return $contexts;
 }
@@ -143,11 +169,179 @@ function scald_extra_scald_contexts() {
  * )
  */
 function scald_extra_scald_render($atom, $context, $options) {
+  // Check if a function for rendering the requested context exists, and use
+  // it if so.
+  $func = 'scald_extra_scald_render__' . $context;
+  if (function_exists($func)) {
+    return $func($atom, $context, $options);
+  }
+
+  // If there is no function for rendering the requested context, the context
+  // must be one of the automatically generated ones for image styles. If not,
+  // nothing more to do here.
   if (strpos($context, 'image_') !== 0) {
     return;
   }
 
   return $atom->rendered->player;
+}
+
+/**
+ * Implements hook_scald_render() via scald_extra_scald_render().
+ *
+ * Context for rendering a scald DND library item as a bootstrap 3 media
+ * object. The image style of the thumbnail needs to be defined at the
+ * 'scald_bootstrap_library_item' view mode for each of the atom types in use.
+ *
+ * @Issue(
+ *   "Provide a default image style for the library item thumbnail"
+ *   type="improvement"
+ *   priority="low"
+ * )
+ */
+function scald_extra_scald_render__scald_bootstrap_library_item($atom, $context, $options) {
+  // Action links
+  $links = scald_atom_user_build_actions_links($atom, NULL);
+  // Force all links to open in a new window
+  foreach ($links as $action => $link) {
+    $links[$action]['attributes']['target'] = '_blank';
+  }
+  // The Insert link. Use the "_" prefix to avoid collision with possible
+  // "insert" action.
+  $links['_insert'] = array(
+    'title' => t('Insert'),
+    'external' => TRUE,
+    'fragment' => FALSE,
+    'attributes' => array(
+      'data-atom-id' => $atom->sid,
+      'style' => 'display:none',
+    ),
+    'href' => '',
+  );
+
+  $links_element = array(
+    '#theme' => 'links',
+    '#links' => $links,
+    '#attributes' => array('class' => array('links', 'inline')),
+  );
+  $rendered_links = drupal_render($links_element);
+
+  // Get the icon that corresponds to the atom type.
+  $icon = _scald_extra_icon($atom->type);
+
+  // Get the thumbnail respecting the settings defined in the
+  // 'scald_bootstrap_library_item' view mode.
+  $image_render_array = array();
+  $image_items = field_get_items('scald_atom', $atom, 'scald_thumbnail');
+  if ($image_items) {
+    $image_render_array = field_view_value('scald_atom', $atom, 'scald_thumbnail', $image_items[0], 'scald_bootstrap_library_item');
+  }
+
+  // Prepare and return the html.
+  $html = '<div class="media drop" draggable="TRUE" data-atom-id="' . $atom->sid . '">';
+
+  if (!empty($image_render_array)) {
+    $html .= '<div class="media-left">' .
+      render($image_render_array) .
+      '</div>';
+  }
+
+  $html .= '<div class="media-body">' .
+    '<h4 class="media-heading" style="font-size:14px">' .
+    $atom->rendered->title .
+    '</h4>' .
+    $rendered_links .
+    '</div>' .
+    '<div class="media-right">' . $icon . '</div>' .
+    '</div>';
+
+  return $html;
+}
+
+/**
+ * Implements hook_scald_render() via scald_extra_scald_render().
+ *
+ * Context for rendering a scald atom as a bootstrap 3 media object. The image
+ * style of the thumbnail needs to be defined at the
+ * 'scald_bootstrap_media_object' view mode for each of the atom types in use.
+ *
+ * @Issue(
+ *   "Provide a default image style for the media object thumbnail"
+ *   type="improvement"
+ *   priority="low"
+ * )
+ */
+function scald_extra_scald_render__scald_bootstrap_media_object($atom, $context, $options) {
+  // Get the icon that corresponds to the atom type.
+  $icon = _scald_extra_icon($atom->type);
+
+  // Get the thumbnail respecting the settings defined in the
+  // 'scald_bootstrap_media_object' view mode.
+  $image_render_array = array();
+  $image_items = field_get_items('scald_atom', $atom, 'scald_thumbnail');
+  if ($image_items) {
+    $image_render_array = field_view_value('scald_atom', $atom, 'scald_thumbnail', $image_items[0], 'scald_bootstrap_media_object');
+  }
+
+  // Get the description respecting the settings defined in the
+  // 'scald_bootstrap_media_object' view mode.
+  $description_items = field_get_items('scald_atom', $atom, 'scald_description');
+  if ($description_items) {
+    $description_render_array = field_view_value('scald_atom', $atom, 'scald_description', $description_items[0], 'scald_bootstrap_media_object');
+  }
+
+  // The title will be rendered as a link to the atom view page.
+  /**
+   * @Issue(
+   *   "Do we need to check 'view/fetch' permissions?"
+   *   type="bug"
+   *   priority="low"
+   *   labels="security"
+   * )
+   */
+  $title = l(
+    $atom->rendered->title, 'atom/' . $atom->sid,
+    array(
+      'attributes' => array(
+        'target' => '_blank',
+      ),
+      'html' => TRUE,
+    )
+  );
+
+  // Prepare and return the html.
+  $html = '<div class="media" data-atom-id="' . $atom->sid . '">';
+
+  if (!empty($image_render_array)) {
+    $html .= '<div class="media-left">' .
+      render($image_render_array) .
+      '</div>';
+  }
+
+  $html .= '<div class="media-body">' .
+    '<h4 class="media-heading">' .
+    $title .
+    '</h4>' .
+    render($description_render_array) .
+    '</div>' .
+    '<div class="media-right">' . $icon . '</div>' .
+    '</div>';
+
+  return $html;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function scald_extra_entity_info_alter(&$entity_info){
+  $entity_info['scald_atom']['view modes']['scald_bootstrap_library_item'] = array(
+    'label' => t('Scald Bootstrap Library Item'),
+    'custom settings' => TRUE,
+  );
+  $entity_info['scald_atom']['view modes']['scald_bootstrap_media_object'] = array(
+    'label' => t('Bootstrap 3 Media Object'),
+    'custom settings' => TRUE,
+  );
 }
 
 /**

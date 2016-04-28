@@ -1,0 +1,21 @@
+/**
+ * Rules for styling a library item.
+ *
+ * @Issue(
+ *   "Move rules related to bootstrap to the 'scald_bootstrap' module"
+ *   type="task"
+ *   priority="low"
+ * )
+ */
+.scald-library {
+  .media {
+    border-bottom : 1px dotted #ccc;
+    cursor        : pointer;
+    margin-bottom : 5px;
+    padding       : 5px;
+
+    ul.links {
+      margin-bottom : 0;
+    }
+  }
+}

@@ -52,6 +52,8 @@ function scald_extra_views_default_views() {
   $handler->display->display_options['fields']['representation']['table'] = 'scald_atoms';
   $handler->display->display_options['fields']['representation']['field'] = 'representation';
   $handler->display->display_options['fields']['representation']['label'] = '';
+  $handler->display->display_options['fields']['representation']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['representation']['context'] = 'scald_bootstrap_library_item';
   /* Sort criterion: Atom: Created date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'scald_atoms';

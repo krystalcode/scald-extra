@@ -611,7 +611,7 @@ function _scald_extra_context_array(array $style) {
     'parseable' => TRUE,
     'hidden' => FALSE,
     'formats' => array(
-      'image' => array('jpeg', 'png', 'passthrough'),
+      'image' => array('jpeg', 'png', 'gif', 'passthrough'),
     ),
   );
 }

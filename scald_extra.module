@@ -139,7 +139,8 @@ function scald_extra_scald_contexts() {
       'title'           => t('Scald Bootstrap Library item'),
       'description'     => t('The Scald Bootstrap DND Library Representation'),
       'render_language' => 'XHTML',
-      'parseable'       => FALSE,
+      'parseable'       => TRUE,
+      'hidden'          => FALSE,
       'formats'         => array(),
     );
   }
@@ -149,7 +150,19 @@ function scald_extra_scald_contexts() {
     'title'           => t('Bootstrap 3 Media Object'),
     'description'     => t('Atom representation as a Bootstrap 3 media object.'),
     'render_language' => 'XHTML',
-    'parseable'       => FALSE,
+    'parseable'       => TRUE,
+    'hidden'          => FALSE,
+    'formats'         => array(),
+  );
+
+  // Add a context for representing atoms in a single line (image and title as
+  // link).
+  $contexts['scald_extra_single_line'] = array(
+    'title'           => t('Single Line Representation'),
+    'description'     => t('Render atoms in a single line (image and title as a link).'),
+    'render_language' => 'XHTML',
+    'parseable'       => TRUE,
+    'hidden'          => FALSE,
     'formats'         => array(),
   );
 
@@ -328,6 +341,90 @@ function scald_extra_scald_render__scald_bootstrap_media_object($atom, $context,
     '</div>';
 
   return $html;
+}
+
+/**
+ * Implements hook_scald_render().
+ */
+function scald_extra_scald_render__scald_extra_single_line($atom, $context, $options) {
+  // Get the thumbnail in the '20x20' image style.
+  /**
+   * @Issue(
+   *   "Provide the '20x20' image style"
+   *   type="bug"
+   *   priority="normal"
+   * )
+   */
+  $image_element = '';
+  $image_items = field_get_items('scald_atom', $atom, 'scald_thumbnail');
+  if ($image_items) {
+    $image_element = theme(
+      'image_style',
+      array(
+        'style_name' => '20x20',
+        'path'       => $image_items[0]['uri'],
+      )
+    );
+  }
+  // If there is no thumbnail, get the default icon used by the scald_file
+  // module for its file representation.
+  elseif (!empty($atom->base_entity)) {
+    $image_element = '<img src="' . _scald_file_get_default_icon($atom->base_entity) . '">';
+  }
+  // If the atom does not have a base file, get the most appropriate icon based
+  // on the atom type.
+  else {
+    $file = new stdClass();
+
+    if ($atom->type == 'video') {
+      $file->filemime = 'video/mp4';
+    }
+    elseif ($atom->type == 'audio') {
+      $file->filemime = 'audio/mpeg';
+    }
+    elseif ($atom->type == 'url') {
+      $file->filemime = 'application/x-mswinurl';
+    }
+
+    if (!empty($file->filemime)) {
+      $image_element = '<img src="' . _scald_file_get_default_icon($file) . '">';
+    }
+  }
+
+  // Wrap the thumbnail in a link.
+  $image = l(
+    $image_element,
+    'atom/' . $atom->sid,
+    array(
+      'attributes' => array(
+        'target' => '_blank',
+      ),
+      'html' => TRUE,
+    )
+  );
+
+  // The title will be rendered as a link to the atom view page.
+  /**
+   * @Issue(
+   *   "Do we need to check 'view/fetch' permissions?"
+   *   type="bug"
+   *   priority="low"
+   *   labels="security"
+   * )
+   */
+  $title = l(
+    $atom->rendered->title,
+    'atom/' . $atom->sid,
+    array(
+      'attributes' => array(
+        'target' => '_blank',
+      ),
+      'html' => TRUE,
+    )
+  );
+
+  // Return the html.
+  return '<div class="scald-extra-single-line">' . $image . $title . '</div>';
 }
 
 /**

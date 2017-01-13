@@ -657,8 +657,8 @@ function scald_extra_js_alter(&$javascript) {
     return;
   }
 
-  $old_path = 'sites/all/modules/scald/modules/library/dnd/js/dnd-library.js';
-  $new_path = 'sites/all/modules/scald_extra/js/dnd-library.js';
+  $old_path = drupal_get_path('module', 'scald') . '/modules/library/dnd/js/dnd-library.js';
+  $new_path = drupal_get_path('module', 'scald_extra') . '/js/dnd-library.js';
 
   // Let the dnd module to control when the js should be loaded and when not. If
   // the original js is not included, nothing to do here.
@@ -691,8 +691,8 @@ function scald_extra_css_alter(&$css) {
     return;
   }
 
-  $old_path = 'sites/all/modules/scald/modules/library/dnd/css/dnd-library.css';
-  $new_path = 'sites/all/modules/scald_extra/css/dnd-library.css';
+  $old_path = drupal_get_path('module', 'scald') . '/modules/library/dnd/css/dnd-library.css';
+  $new_path = drupal_get_path('module', 'scald_extra') . '/css/dnd-library.css';
 
   // Let the dnd module to control when the js should be loaded and when not. If
   // the original js is not included, nothing to do here.

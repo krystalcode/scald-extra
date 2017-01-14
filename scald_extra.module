@@ -651,6 +651,13 @@ function scald_extra_views_api() {
 
 /**
  * Implements hook_js_alter().
+ *
+ * @Issue(
+ *   "Javascript does not load when AdvAgg module is used making DND unusable"
+ *   type="bug"
+ *   priority="high"
+ *   labels="ux"
+ * )
  */
 function scald_extra_js_alter(&$javascript) {
   if (!variable_get('scald_extra_dnd_library', TRUE)) {
